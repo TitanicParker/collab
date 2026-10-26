@@ -83,13 +83,17 @@ Categories support browsing by source domain and, after validation, the three st
 ## Current state
 
 - Workflow architecture and two explicit firewalls are documented.
-- A public-facing `index.html` with a responsive, illustrative card interface has been added.
-- Demonstration cards are **not** claims of experimental classification.
+- The public `index.html` loads `Project_54_Portable_Structuracy_Corpus_Through_1250.md` as its **single first-stage source of truth**, pairs numbered original sentences with their frozen `**Structural Reading:**` paragraphs, and displays them on a responsive flip-card deck. No canonical coordinate is inferred from this display.
+- The page may show demonstration cards only if the Markdown cannot be loaded; these are **not** claims of experimental classification.
 - The first 1,400 reading-only second-stage resolutions have **not** been performed by this repository.
-- No live corpus records or canonical resolutions are published here yet.
+- The through-1250 working corpus Markdown is committed publicly and its existing first-stage readings are available to the card viewer; canonical second-stage resolutions are not published here yet.
 
 ## The experiment's question
 
 Can independently produced structural readings, stripped of their original sentences and meaningful explanations, preserve sufficient evidence for a separate decoder to recover stable, discriminable forms of completed intelligibility across literature, science, fairy tales and mathematics?
 
 The 54 is a candidate grammar to be tested—not a result to be presumed.
+
+## Markdown–HTML synchronization
+
+The committed `Project_54_Portable_Structuracy_Corpus_Through_1250.md` is authoritative for first-stage card content. The site fetches that file directly; it does not copy, rephrase or independently classify the readings. A source record is recognized by a numbered line followed by a `**Structural Reading:**` paragraph. A sentence without a corresponding reading is not silently marked solved. The site preserves original numbering and category headings where available. Refresh the site after updating the Markdown to display its newest entries. Reading-only decoder handoff is a **separate export** and must not use the public card UI as decoder input.
