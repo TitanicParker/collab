@@ -23,11 +23,11 @@ main{width:min(1100px,calc(100% - 36px));margin:auto;padding:28px 0 80px}.top{di
 <div class="stage"><div class="tag">Final decoder · lookup, not reinterpretation</div><h3>Canonical cell number and short form</h3><p>Look up the frozen coordinate in the authoritative Fiche Ceathar control table. If unresolved, publish no invented classification.</p></div><div class="arrow">↓</div>
 <div class="stage"><div class="tag">Document 4 · approved publication</div><h3>Reassembled card record</h3><p>Original sentence, meaningful reading, structural reading, structural recovery, three axes, cell number, short form, evidence status and provenance become viewable after the protected work is finished.</p></div>
 </div></section>
-<section id="cards"><div class="cardshead"><div><div class="overline">The future living atlas</div><h2>Turn the sentence over.</h2></div><span class="pill">Illustrative records · not experimental results</span></div>
-<p class="sub">Tap to flip. Swipe horizontally or use the arrows to move through this small interface demonstration. The production deck will be populated only from audited, approved records—not from live decoder inputs.</p>
+<section id="cards"><div class="cardshead"><div><div class="overline">The future living atlas</div><h2>Turn the sentence over.</h2></div><span class="pill">Source-linked corpus · no second-stage claims</span></div>
+<p class="sub">Tap to flip from the original sentence to its frozen structural reading. Swipe or use the arrows to navigate. Cards are loaded from the corpus Markdown; no three-axis decisions are invented.</p>
 <div class="filterbar"><label for="category">Category</label><select id="category"><option value="all">All demonstrations</option><option value="Literature">Literature</option><option value="Science">Science</option><option value="Fairy tales">Fairy tales</option><option value="Mathematics">Mathematics</option></select><span id="availability" class="small" aria-live="polite"></span></div>
 <div class="cardarea"><button class="flip" id="card" aria-label="Flip demonstration card" aria-pressed="false"><span class="flipinner"><span class="face front"><span class="overline" id="frontmeta"></span><h3 id="fronttitle"></h3><p id="fronttext"></p><span class="foot">Meaning · tap to reveal structure ↻</span></span><span class="face back"><span class="overline" id="backmeta"></span><h3 id="backtitle"></h3><p id="backtext"></p><span class="foot">Structure · tap to return ↻</span></span></span></button><div class="controls"><button id="prev" aria-label="Previous card">← Previous</button><span class="small" id="position" aria-live="polite"></span><button id="next" aria-label="Next card">Next →</button></div></div>
-<p class="small">These are interface specimens rather than pre-resolved corpus entries. Until results have passed the decoder and the publication gate, the card does not pretend to know a cell number.</p></section>
+<p class="small">The page reads the source Markdown directly and displays first-stage readings only. Second-stage structural recovery, coordinates and canonical labels remain pending until independently decoded and approved.</p></section>
 <section><div class="overline">Publication contract</div><h2>What a finished card will hold.</h2><div class="code">{
   "ordinal": 1,
   "category": "Literature | Science | Fairy tales | Mathematics",
@@ -56,11 +56,47 @@ const DATA=[
 {category:"Fairy tales",title:"A change in the story",meaning:"An event becomes understandable in the shared movement of a tale.",structure:"The structural reading makes the change and its relational landing visible without supplying a predetermined cell."},
 {category:"Mathematics",title:"A compact theorem statement",meaning:"A relationship is asserted within a mathematical setting.",structure:"The reading identifies the stated terms, constraints and equality or implication without mistaking the theorem statement for its proof."}
 ];let filtered=DATA.slice(),index=0,down=null;const el=id=>document.getElementById(id),card=el("card");
-function render(){const d=filtered[index];card.classList.remove("flipped");card.setAttribute("aria-pressed","false");el("frontmeta").textContent=d.category+" · demonstration";el("backmeta").textContent="Structural reading · demonstration";el("fronttitle").textContent=d.title;el("fronttext").textContent=d.meaning;el("backtitle").textContent="The structural achievement";el("backtext").textContent=d.structure;el("position").textContent=(index+1)+" / "+filtered.length;el("availability").textContent=filtered.length+" interface specimen"+(filtered.length===1?"":"s");el("prev").disabled=index===0;el("next").disabled=index===filtered.length-1;}
+function render(){const d=filtered[index];card.classList.remove("flipped");card.setAttribute("aria-pressed","false");el("frontmeta").textContent=d.category+" · "+(d.ordinal?"sentence "+d.ordinal:"demonstration");el("backmeta").textContent="Frozen structural reading · "+(d.ordinal?"sentence "+d.ordinal:"demonstration");el("fronttitle").textContent=d.title;el("fronttext").textContent=d.meaning;el("backtitle").textContent=d.ordinal?"Structural reading":"The structural achievement";el("backtext").textContent=d.structure;el("position").textContent=(index+1)+" / "+filtered.length;el("availability").textContent=filtered.length+" interface specimen"+(filtered.length===1?"":"s");el("prev").disabled=index===0;el("next").disabled=index===filtered.length-1;}
 function move(n){index=Math.max(0,Math.min(filtered.length-1,index+n));render();}
 card.addEventListener("click",()=>{const f=card.classList.toggle("flipped");card.setAttribute("aria-pressed",String(f));});
 el("prev").addEventListener("click",()=>move(-1));el("next").addEventListener("click",()=>move(1));
 el("category").addEventListener("change",e=>{filtered=e.target.value==="all"?DATA.slice():DATA.filter(d=>d.category===e.target.value);index=0;render()});
 card.addEventListener("pointerdown",e=>{down={x:e.clientX,y:e.clientY};});card.addEventListener("pointerup",e=>{if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y;down=null;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.25){e.preventDefault();move(dx<0?1:-1);card.dataset.ignoreClick="yes";}});card.addEventListener("click",()=>{if(card.dataset.ignoreClick==="yes"){card.dataset.ignoreClick="";card.classList.remove("flipped");card.setAttribute("aria-pressed","false");}},true);
 document.addEventListener("keydown",e=>{if(/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName||""))return;if(e.key==="ArrowRight")move(1);if(e.key==="ArrowLeft")move(-1);});render();
+
+/* Corpus and cards share one source of truth: the committed Markdown file.
+   No original sentence, meaningful interpretation or cell assignment is sent to a decoder. */
+(async function loadCorpusCards(){
+ const source="Project_54_Portable_Structuracy_Corpus_Through_1250.md";
+ try{
+  const response=await fetch(source,{cache:"no-cache"});
+  if(!response.ok)throw Error("HTTP "+response.status);
+  const md=await response.text();
+  const lines=md.split(/\r?\n/);
+  const result=[];let current=null,section="Corpus",inside=false;
+  function finish(){if(current&&current.structure&&current.title){result.push(current)}current=null;}
+  for(const line of lines){
+   if(/^## Corpus and Structural Readings\s*$/.test(line)){inside=true;continue;}
+   if(!inside)continue;
+   if(/^#{2,4} / .test(line)){const h=line.replace(/^#+\s*/,"");if(/^Corpus\s/i.test(h)||/theorem|mathematics|fairy|science|literary|story|narrative/i.test(h))section=h;finish();continue;}
+   const m=line.match(/^(\d{1,5})\.\s+(.+)$/);
+   if(m){finish();current={ordinal:Number(m[1]),category:section,title:m[2].trim(),meaning:"Original corpus sentence · meaningful analysis is not separately published in this Markdown record.",structure:""};continue;}
+   if(current){
+    const sr=line.match(/^\*\*Structural Reading:\*\*\s*(.*)$/);
+    if(sr){current.structure=sr[1].trim();continue;}
+    if(current.structure&&line.trim()&&!/^\*\*/.test(line)&&!/^[-|#]/.test(line)){current.structure+=" "+line.trim();}
+   }
+  }
+  finish();
+  if(result.length===0)throw Error("No paired numbered sentences and structural readings found");
+  DATA.splice(0,DATA.length,...result);
+  filtered=DATA.slice();index=0;
+  const picker=el("category");picker.replaceChildren();
+  const base=new Option("All corpus sections","all");picker.add(base);
+  for(const c of [...new Set(DATA.map(x=>x.category))])picker.add(new Option(c,c));
+  el("availability").textContent=DATA.length+" frozen readings loaded from Markdown";
+  document.querySelector("#cards .pill").textContent="Live Markdown source · "+DATA.length+" readings";
+  render();
+ }catch(err){el("availability").textContent="Corpus could not be loaded; showing interface specimens. "+err.message;console.warn(err);}
+})();
 </script></body></html>
